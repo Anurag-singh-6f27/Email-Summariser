@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}
+Statistics
+{% endblock %}
+
+{% block content %}
+
+<h1>Statistics</h1>
+
+<div class="cards">
+
+    <div class="card">
+        <h3>Email Accounts</h3>
+        <p>{{ stats.configured_accounts }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Retention Days</h3>
+        <p>{{ stats.retention_days }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Max Emails / Run</h3>
+        <p>{{ stats.max_emails_per_run }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Primary AI</h3>
+        <p>{{ stats.primary_ai_provider }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Scheduler</h3>
+        <p>{{ stats.scheduler_enabled }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Timezone</h3>
+        <p>{{ stats.timezone }}</p>
+    </div>
+
+</div>
+
+{% endblock %}

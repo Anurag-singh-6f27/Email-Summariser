@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}
+Logs
+{% endblock %}
+
+{% block content %}
+
+<h1>Application Logs</h1>
+
+<p>
+    Total Log Lines:
+    <strong>{{ total_logs }}</strong>
+</p>
+
+<div
+    style="
+        background:#1e1e1e;
+        color:#00ff66;
+        padding:20px;
+        border-radius:10px;
+        font-family:Consolas, monospace;
+        white-space:pre-wrap;
+        overflow:auto;
+        height:650px;
+    "
+>
+
+{% if logs %}
+
+{% for line in logs %}
+{{ line }}
+{% endfor %}
+
+{% else %}
+
+No logs found.
+
+{% endif %}
+
+</div>
+
+<br>
+
+<div
+    style="
+        display:flex;
+        justify-content:center;
+        gap:20px;
+    "
+>
+
+{% if page > 1 %}
+<a href="/logs?page={{ page-1 }}">
+⬅ Previous
+</a>
+{% endif %}
+
+<strong>
+Page {{ page }} of {{ total_pages }}
+</strong>
+
+{% if page < total_pages %}
+<a href="/logs?page={{ page+1 }}">
+Next ➡
+</a>
+{% endif %}
+
+</div>
+
+{% endblock %}

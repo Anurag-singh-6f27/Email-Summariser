@@ -18,6 +18,9 @@ import socket
 
 from typing import List
 
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 from config import AppConfig, EmailConfig
 from mail.models import EmailData
 from mail.parser import parse_email
@@ -158,7 +161,7 @@ class EmailReader:
 
             uid_list.reverse()
 
-            uid_list = uid_list[: self.config.max_emails_per_run]
+            
 
             logger.info(
                 "{} unread emails found.",
@@ -209,7 +212,18 @@ class EmailReader:
                         message=message,
                     )
 
+                    if not self._is_within_retention(parsed_email):
+
+                        logger.info(
+                                "Reached email older than {} days. Stopping mailbox scan.",
+                                self.config.email_retention_days,
+                            )
+                        break
+
                     parsed_emails.append(parsed_email)
+
+                    if len(parsed_emails) >= self.config.max_emails_per_run:
+                        break
 
                 except Exception:
                     logger.exception(
@@ -235,3 +249,23 @@ class EmailReader:
                 "Connection closed for {}",
                 account.email,
             )
+
+    def _is_within_retention(
+        self,
+        email: EmailData,
+    ) -> bool:
+        """
+        Check whether an email falls within the configured
+        retention period.
+        """
+
+        cutoff = (
+            datetime.now(
+                ZoneInfo("Asia/Kolkata")
+            )
+            - timedelta(
+                days=self.config.email_retention_days
+            )
+        )
+
+        return email.received_at >= cutoff

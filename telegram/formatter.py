@@ -9,10 +9,16 @@ from __future__ import annotations
 
 import re
 
+from datetime import timezone
+
 from mail.models import EmailData
 from ai.models import SummaryResult
 
 from telegram.models import TelegramMessage
+
+from utils.logger import get_logger
+
+logger = get_logger()
 
 
 # ==========================================================
@@ -61,17 +67,23 @@ class TelegramFormatter:
 
         content = summary.content
         metadata = summary.metadata
+        received_date = email.received_at.strftime("%d %b %Y")
+        received_time = email.received_at.strftime("%I:%M %p")
 
         lines: list[str] = [
 
             "📧 *New Email*",
             "",
 
-            f"📥 *Inbox:* {escape_markdown(email.recipient_email)}",
+            f"📥 *Inbox:* {escape_markdown(email.account_email)}",
 
             f"👤 *From:* {escape_markdown(email.sender_name)}",
 
             f"📨 *Email:* {escape_markdown(email.sender_email)}",
+
+            f"📅 *Received Date:* {escape_markdown(received_date)}",
+
+            f"🕒 *Received Time:* {escape_markdown(received_time)}",
 
             f"📌 *Subject:* {escape_markdown(email.subject)}",
 
@@ -150,9 +162,8 @@ class TelegramFormatter:
             ])
 
             for item in content.important_links:
-
                 lines.append(
-                    escape_markdown(item)
+                    f"• {escape_markdown(str(item))}"
                 )
 
         if content.people:
@@ -207,9 +218,12 @@ class TelegramFormatter:
                 text[: self.MAX_MESSAGE_LENGTH - 3]
                 + "..."
             )
+        logger.info("Telegram message:\n{}", text)
 
         return TelegramMessage(
             text=text,
             parse_mode="MarkdownV2",
             disable_web_page_preview=True,
         )
+    
+

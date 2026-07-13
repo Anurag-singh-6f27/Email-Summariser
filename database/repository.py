@@ -171,8 +171,10 @@ class ProcessedEmailRepository:
     ) -> list[EmailData]:
         """
         Return only emails that have not been processed.
-
-        New emails are automatically stored.
+        
+        This method only filters emails. Saving processed
+        emails is handled by the pipeline after successful
+        processing.
         """
 
         new_emails: list[EmailData] = []
@@ -193,8 +195,66 @@ class ProcessedEmailRepository:
                 email.subject,
             )
 
-            self.save_processed_email(email)
-
             new_emails.append(email)
 
         return new_emails
+    
+    def get_processed_page(
+        self,
+        page: int,
+        page_size: int,
+    ) -> list[ProcessedEmail]:
+        """
+        Return one page of processed emails.
+        """
+
+        offset = (page - 1) * page_size
+
+        cursor = self._connection.execute(
+            """
+            SELECT *
+            FROM processed_emails
+            ORDER BY processed_at DESC
+            LIMIT ?
+            OFFSET ?
+            """,
+            (
+                page_size,
+                offset,
+            ),
+        )
+
+        rows = cursor.fetchall()
+
+        emails: list[ProcessedEmail] = []
+
+        for row in rows:
+
+            emails.append(
+                ProcessedEmail(
+                    id=row["id"],
+                    message_id=row["message_id"],
+                    uid=row["uid"],
+                    account_email=row["account_email"],
+                    sender_email=row["sender_email"],
+                    subject=row["subject"],
+                    received_at=row["received_at"],
+                    processed_at=row["processed_at"],
+                    processing_status=row["processing_status"],
+                )
+            )
+
+        return emails
+    def count_processed(self) -> int:
+        """
+        Return total number of processed emails.
+        """
+
+        cursor = self._connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM processed_emails
+            """
+        )
+
+        return int(cursor.fetchone()[0])

@@ -30,7 +30,9 @@ class DatabaseManager:
     def __init__(self) -> None:
         DATABASE_DIRECTORY.mkdir(parents=True, exist_ok=True)
 
-        self.connection = sqlite3.connect(DATABASE_PATH)
+        self.connection = sqlite3.connect(DATABASE_PATH,
+                                        check_same_thread=False,
+                                        )
 
         self.connection.row_factory = sqlite3.Row
 

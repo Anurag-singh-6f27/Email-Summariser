@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}
+Scheduler
+{% endblock %}
+
+{% block content %}
+
+<h1>Scheduler</h1>
+
+<div class="cards">
+
+    <div class="card">
+
+        <h3>Status</h3>
+
+        <p>
+
+            {% if scheduler.enabled %}
+                🟢 Enabled
+            {% else %}
+                🔴 Disabled
+            {% endif %}
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Schedule</h3>
+
+        <p>
+            Hour:
+            {{ scheduler.hour }}
+        </p>
+
+        <p>
+            Minute:
+            {{ scheduler.minute }}
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Timezone</h3>
+
+        <p>
+
+            {{ scheduler.timezone }}
+
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Run On Startup</h3>
+
+        <p>
+
+            {% if scheduler.run_on_startup %}
+                ✅ Yes
+            {% else %}
+                ❌ No
+            {% endif %}
+
+        </p>
+
+    </div>
+
+</div>
+
+<br>
+
+<h2>Scheduler Controls</h2>
+
+<p>
+The scheduler controls will become available once the admin panel is integrated with the running application.
+</p>
+
+<div style="display:flex; gap:15px;">
+
+<button disabled>
+▶ Run Pipeline
+</button>
+
+<button disabled>
+⏸ Pause Scheduler
+</button>
+
+<button disabled>
+▶ Resume Scheduler
+</button>
+
+</div>
+
+{% endblock %}

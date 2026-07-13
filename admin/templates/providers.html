@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}
+AI Providers
+{% endblock %}
+
+{% block content %}
+
+<h1>AI Providers</h1>
+
+<table
+    border="1"
+    cellpadding="8"
+    cellspacing="0"
+    width="100%"
+>
+
+<tr>
+
+    <th>Provider</th>
+
+    <th>Status</th>
+
+    <th>Primary</th>
+
+    <th>Model</th>
+
+</tr>
+
+{% for provider in providers %}
+
+<tr>
+
+    <td>{{ provider.name }}</td>
+
+    <td>
+        {% if provider.configured %}
+            🟢 Configured
+        {% else %}
+            🔴 Not Configured
+        {% endif %}
+    </td>
+
+    <td>
+        {% if provider.primary %}
+            ⭐ Yes
+        {% else %}
+            No
+        {% endif %}
+    </td>
+
+    <td>{{ provider.model }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}

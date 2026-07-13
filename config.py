@@ -20,6 +20,15 @@ load_dotenv()
 # ==========================================================
 
 @dataclass(frozen=True)
+class AdminConfig:
+    """
+    Configuration for the Admin Panel.
+    """
+
+    username: str
+    password: str
+
+@dataclass(frozen=True)
 class EmailConfig:
     """
     Configuration for a single email account.
@@ -74,6 +83,28 @@ class TelegramConfig:
 
     bot_token: str
     chat_id: str
+    retry_count: int
+    retry_delay: int
+
+# ==========================================================
+# Scheduler Configuration
+# ==========================================================
+
+@dataclass(frozen=True)
+class SchedulerConfig:
+    """
+    Configuration for the application scheduler.
+    """
+
+    enabled: bool
+
+    run_on_startup: bool
+
+    hour: str
+
+    minute: str
+
+    timezone: str
 
 
 # ==========================================================
@@ -92,7 +123,13 @@ class AppConfig:
 
     telegram: TelegramConfig
 
+    scheduler: SchedulerConfig
+
+    admin: AdminConfig
+
     max_emails_per_run: int
+
+    email_retention_days: int
 
 
 # ==========================================================
@@ -128,13 +165,17 @@ def load_config() -> AppConfig:
 
     email_accounts: list[EmailConfig] = []
 
-    # Change range when adding more email accounts.
-    for index in range(1, 2):
+    index = 1
+
+    while True:
+
+        email = os.getenv(f"EMAIL_{index}")
+
+        if email is None or email.strip() == "":
+            break
 
         email_accounts.append(
-
             EmailConfig(
-
                 email=get_required_env(
                     f"EMAIL_{index}"
                 ),
@@ -153,6 +194,12 @@ def load_config() -> AppConfig:
                     )
                 ),
             )
+        )
+
+        index += 1
+    if not email_accounts:
+        raise ValueError(
+            "No email accounts configured."
         )
 
     ai_config = AIConfig(
@@ -220,6 +267,58 @@ def load_config() -> AppConfig:
         chat_id=get_required_env(
             "TELEGRAM_CHAT_ID"
         ),
+        retry_count=int(
+            os.getenv(
+                "TELEGRAM_RETRY_COUNT",
+                "3",
+            )
+        ),
+
+        retry_delay=int(
+            os.getenv(
+                "TELEGRAM_RETRY_DELAY",
+                "2",
+            )
+        ),
+    )
+
+    scheduler_config = SchedulerConfig(
+
+        enabled=os.getenv(
+            "SCHEDULER_ENABLED",
+            "true",
+        ).lower() == "true",
+
+        run_on_startup=os.getenv(
+            "RUN_ON_STARTUP",
+            "true",
+        ).lower() == "true",
+
+        hour=os.getenv(
+            "SCHEDULE_HOUR",
+            "*",
+        ),
+
+        minute=os.getenv(
+            "SCHEDULE_MINUTE",
+            "0",
+        ),
+
+        timezone=os.getenv(
+            "TIMEZONE",
+            "UTC",
+        ),
+    )
+
+    admin_config = AdminConfig(
+
+        username=get_required_env(
+            "ADMIN_USERNAME"
+        ),
+
+        password=get_required_env(
+            "ADMIN_PASSWORD"
+        ),
     )
 
     return AppConfig(
@@ -230,10 +329,21 @@ def load_config() -> AppConfig:
 
         telegram=telegram_config,
 
+        scheduler=scheduler_config,
+
+        admin=admin_config,
+
         max_emails_per_run=int(
             os.getenv(
                 "MAX_EMAILS_PER_RUN",
                 "20",
             )
         ),
+        email_retention_days=int(
+            os.getenv(
+                "EMAIL_RETENTION_DAYS",
+                "30",
+            )
+        ),
+        
     )

@@ -7,6 +7,8 @@ into standardized EmailData objects.
 
 from __future__ import annotations
 
+from zoneinfo import ZoneInfo
+
 import re
 from email.header import decode_header
 from email.message import EmailMessage
@@ -219,6 +221,7 @@ def parse_email(
 
         try:
             received_at = parsedate_to_datetime(date_header)
+            received_at = received_at.astimezone(ZoneInfo("Asia/Kolkata"))
         except Exception:
             logger.warning(
                 "Invalid date header for UID={}. Using current time.",
@@ -245,6 +248,13 @@ def parse_email(
 
         if not body:
             logger.warning("Email UID={} has empty body.", uid)
+        
+        logger.info("Mailbox Account : {}", account_email)
+        logger.info("To Header       : {}", message.get("To"))
+        logger.info("Parsed Recipient: {}", recipient_email)
+        logger.info("Date Header     : {}", date_header)
+        logger.info("Parsed Date     : {}", received_at)
+
 
         email_data = EmailData(
             uid=uid,

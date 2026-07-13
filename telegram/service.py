@@ -1,43 +1,109 @@
 """
-Data models used by the Telegram notification layer.
+Telegram notification service.
 
-These models represent messages that will be sent through
-the Telegram Bot API.
+Coordinates formatting and delivery of Telegram
+notifications.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from config import TelegramConfig
+from mail.models import EmailData
+
+from ai.models import SummaryResult
+
+from telegram.client import TelegramClient
+from telegram.formatter import TelegramFormatter
+from telegram.models import TelegramMessage
+
+from utils.logger import get_logger
+
+logger = get_logger()
 
 
-# ==========================================================
-# Telegram Message
-# ==========================================================
-
-@dataclass(slots=True, frozen=True)
-class TelegramMessage:
+class TelegramService:
     """
-    Represents a Telegram message ready to be sent.
-
-    Attributes:
-        text:
-            Fully formatted message.
-
-        parse_mode:
-            Telegram formatting mode.
-
-            Supported values include:
-            - MarkdownV2
-            - HTML
-
-        disable_web_page_preview:
-            Whether Telegram should suppress
-            previews for URLs contained in the
-            message.
+    Public interface for Telegram notifications.
     """
 
-    text: str
+    def __init__(
+        self,
+        config: TelegramConfig,
+    ) -> None:
+        """
+        Initialize the Telegram service.
 
-    parse_mode: str = "MarkdownV2"
+        Args:
+            config:
+                Telegram configuration.
+        """
 
-    disable_web_page_preview: bool = True
+        self._formatter = TelegramFormatter()
+
+        self._client = TelegramClient(
+            config
+        )
+
+    def send_email_summary(
+        self,
+        email: EmailData,
+        summary: SummaryResult,
+    ) -> bool:
+        """
+        Format and send an email summary.
+
+        Args:
+            email:
+                Parsed email.
+
+            summary:
+                AI generated summary.
+
+        Returns:
+            True if the notification was delivered.
+        """
+
+        logger.info(
+            "Preparing Telegram notification for '{}'.",
+            email.subject,
+        )
+
+        message = self._formatter.format(
+            email=email,
+            summary=summary,
+        )
+
+        delivered = self._client.send_message(
+            message
+        )
+
+        if delivered:
+
+            logger.info(
+                "Telegram notification sent successfully."
+            )
+
+        return delivered
+
+    def send_message(
+        self,
+        message: TelegramMessage,
+    ) -> bool:
+        """
+        Send a preformatted Telegram message.
+
+        Args:
+            message:
+                TelegramMessage instance.
+
+        Returns:
+            True if successfully delivered.
+        """
+
+        logger.info(
+            "Sending preformatted Telegram message."
+        )
+
+        return self._client.send_message(
+            message
+        )

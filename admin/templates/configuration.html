@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}
+Configuration
+{% endblock %}
+
+{% block content %}
+
+<h1>Application Configuration</h1>
+
+<div class="cards">
+
+    <div class="card">
+
+        <h3>Email Settings</h3>
+
+        <p>
+            <strong>Retention Days:</strong>
+            {{ config.email_retention_days }}
+        </p>
+
+        <p>
+            <strong>Max Emails / Run:</strong>
+            {{ config.max_emails_per_run }}
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Scheduler</h3>
+
+        <p>
+            <strong>Enabled:</strong>
+            {{ config.scheduler.enabled }}
+        </p>
+
+        <p>
+            <strong>Timezone:</strong>
+            {{ config.scheduler.timezone }}
+        </p>
+
+        <p>
+            <strong>Hour:</strong>
+            {{ config.scheduler.hour }}
+        </p>
+
+        <p>
+            <strong>Minute:</strong>
+            {{ config.scheduler.minute }}
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>AI</h3>
+
+        <p>
+            <strong>Primary Provider:</strong>
+            {{ config.ai.primary_provider }}
+        </p>
+
+        <p>
+            <strong>Retries:</strong>
+            {{ config.ai.max_retries }}
+        </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Telegram</h3>
+
+        <p>
+            <strong>Retry Count:</strong>
+            {{ config.telegram.retry_count }}
+        </p>
+
+        <p>
+            <strong>Retry Delay:</strong>
+            {{ config.telegram.retry_delay }} sec
+        </p>
+
+    </div>
+
+</div>
+
+<br>
+
+<h2>Configured Email Accounts</h2>
+
+<table
+    border="1"
+    cellpadding="8"
+    cellspacing="0"
+    width="100%"
+>
+
+<tr>
+
+    <th>Email Address</th>
+
+    <th>IMAP Server</th>
+
+    <th>Port</th>
+
+</tr>
+
+{% for account in config.email_accounts %}
+
+<tr>
+
+    <td>{{ account.email }}</td>
+
+    <td>{{ account.imap_server }}</td>
+
+    <td>{{ account.imap_port }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}

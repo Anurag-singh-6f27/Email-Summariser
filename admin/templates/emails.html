@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}
+Email History
+{% endblock %}
+
+{% block content %}
+
+<h1>Email History</h1>
+
+<p>
+    Total Processed Emails:
+    <strong>{{ total_emails }}</strong>
+</p>
+
+<table border="1" cellpadding="8" cellspacing="0" width="100%">
+
+    <thead>
+
+        <tr>
+
+            <th>Subject</th>
+
+            <th>Sender</th>
+
+            <th>Account</th>
+
+            <th>Received</th>
+
+            <th>Status</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% if emails %}
+
+            {% for email in emails %}
+
+            <tr>
+
+                <td>{{ email.subject }}</td>
+
+                <td>{{ email.sender_email }}</td>
+
+                <td>{{ email.account_email }}</td>
+
+                <td>{{ email.received_at }}</td>
+
+                <td>{{ email.processing_status }}</td>
+
+            </tr>
+
+            {% endfor %}
+
+        {% else %}
+
+            <tr>
+
+                <td colspan="5" style="text-align:center;">
+                    No processed emails found.
+                </td>
+
+            </tr>
+
+        {% endif %}
+
+    </tbody>
+
+</table>
+
+<br>
+
+<div
+    style="
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        gap:20px;
+    "
+>
+
+    {% if page > 1 %}
+
+        <a href="/emails?page={{ page - 1 }}">
+            ⬅ Previous
+        </a>
+
+    {% endif %}
+
+    <strong>
+        Page {{ page }} of {{ total_pages }}
+    </strong>
+
+    {% if page < total_pages %}
+
+        <a href="/emails?page={{ page + 1 }}">
+            Next ➡
+        </a>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
