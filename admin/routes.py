@@ -21,6 +21,8 @@ from admin.log_service import get_log_page
 
 from fastapi import Request
 
+from fastapi.responses import RedirectResponse
+
 from fastapi.responses import HTMLResponse
 from database.connection import DatabaseManager
 from database.repository import ProcessedEmailRepository
@@ -91,10 +93,57 @@ def dashboard(
     request: Request,
 ):
 
+    dashboard = {
+
+        "pipeline_running": (
+            state.scheduler.is_pipeline_running()
+            if state.scheduler
+            else False
+        ),
+
+        "scheduler_running": (
+            state.scheduler.is_running()
+            if state.scheduler
+            else False
+        ),
+
+        "scheduler_paused": (
+            state.scheduler.is_paused()
+            if state.scheduler
+            else False
+        ),
+
+        "email_accounts": len(
+            config.email_accounts
+        ),
+
+        "primary_provider": (
+            config.ai.primary_provider.upper()
+        ),
+
+        "processed_emails": (
+            repository.count_processed()
+        ),
+
+        "timezone": (
+            config.scheduler.timezone
+        ),
+
+        "max_emails": (
+            config.max_emails_per_run
+        ),
+
+        "retention_days": (
+            config.email_retention_days
+        ),
+    }
+
     return request.app.state.templates.TemplateResponse(
         request=request,
         name="dashboard.html",
-        context={},
+        context={
+            "dashboard": dashboard,
+        },
     )
 
 @router.post("/login")
@@ -190,10 +239,31 @@ def scheduler(
 ):
 
     scheduler = {
-        "enabled": config.scheduler.enabled,
+
+        "enabled": (
+            state.scheduler.is_running()
+            if state.scheduler is not None
+            else False
+        ),
+
+        "paused": (
+            state.scheduler.is_paused()
+            if state.scheduler is not None
+            else False
+        ),
+
+        "pipeline_running": (
+            state.scheduler.is_pipeline_running()
+            if state.scheduler is not None
+            else False
+        ),
+
         "hour": config.scheduler.hour,
+
         "minute": config.scheduler.minute,
+
         "timezone": config.scheduler.timezone,
+
         "run_on_startup": config.scheduler.run_on_startup,
     }
 
@@ -289,4 +359,46 @@ def logs(
             "total_pages": total_pages,
             "total_logs": total_logs,
         },
+    )
+
+@router.post("/scheduler/run")
+def run_pipeline():
+
+    if state.scheduler is None:
+
+        return RedirectResponse(
+            "/scheduler",
+            status_code=303,
+        )
+
+    state.scheduler.run_pipeline()
+
+    return RedirectResponse(
+        "/scheduler",
+        status_code=303,
+    )
+
+@router.post("/scheduler/pause")
+def pause_scheduler():
+
+    if state.scheduler is not None:
+
+        state.scheduler.pause()
+
+    return RedirectResponse(
+        "/scheduler",
+        status_code=303,
+    )
+
+
+@router.post("/scheduler/resume")
+def resume_scheduler():
+
+    if state.scheduler is not None:
+
+        state.scheduler.resume()
+
+    return RedirectResponse(
+        "/scheduler",
+        status_code=303,
     )

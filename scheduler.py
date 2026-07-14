@@ -228,6 +228,7 @@ class Scheduler:
         """
         Pause scheduled pipeline executions.
         """
+        logger.info("Pause method called.")
 
         self._scheduler.pause()
         logger.info(
@@ -254,3 +255,23 @@ class Scheduler:
         """
 
         return self._scheduler.running
+    
+    
+    def is_paused(
+    self,
+    ) -> bool:
+        """
+        Return whether the scheduler is paused.
+        """
+
+        return self._scheduler.state == 2
+
+
+    def is_pipeline_running(
+        self,
+    ) -> bool:
+        """
+        Return whether the pipeline is currently running.
+        """
+
+        return self._running

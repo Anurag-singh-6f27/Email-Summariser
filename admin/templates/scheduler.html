@@ -12,17 +12,21 @@ Scheduler
 
     <div class="card">
 
-        <h3>Status</h3>
+        <h3>Scheduler</h3>
 
-        <p>
+        {% if scheduler.paused %}
 
-            {% if scheduler.enabled %}
-                🟢 Enabled
-            {% else %}
-                🔴 Disabled
-            {% endif %}
+            <p>⏸ Paused</p>
 
-        </p>
+        {% elif scheduler.enabled %}
+
+            <p>🟢 Running</p>
+
+        {% else %}
+
+            <p>🔴 Stopped</p>
+
+        {% endif %}
 
     </div>
 
@@ -47,10 +51,24 @@ Scheduler
         <h3>Timezone</h3>
 
         <p>
-
             {{ scheduler.timezone }}
-
         </p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Pipeline</h3>
+
+        {% if scheduler.pipeline_running %}
+
+            <p>🔄 Running</p>
+
+        {% else %}
+
+            <p>✅ Idle</p>
+
+        {% endif %}
 
     </div>
 
@@ -58,15 +76,15 @@ Scheduler
 
         <h3>Run On Startup</h3>
 
-        <p>
+        {% if scheduler.run_on_startup %}
 
-            {% if scheduler.run_on_startup %}
-                ✅ Yes
-            {% else %}
-                ❌ No
-            {% endif %}
+            <p>✅ Yes</p>
 
-        </p>
+        {% else %}
+
+            <p>❌ No</p>
+
+        {% endif %}
 
     </div>
 
@@ -77,22 +95,49 @@ Scheduler
 <h2>Scheduler Controls</h2>
 
 <p>
-The scheduler controls will become available once the admin panel is integrated with the running application.
+Control the email processing scheduler.
 </p>
 
-<div style="display:flex; gap:15px;">
+<div
+    style="
+        display:flex;
+        gap:15px;
+        flex-wrap:wrap;
+    "
+>
 
-<button disabled>
-▶ Run Pipeline
-</button>
+    <form
+        action="/scheduler/run"
+        method="post"
+    >
 
-<button disabled>
-⏸ Pause Scheduler
-</button>
+        <button type="submit">
+            ▶ Run Pipeline
+        </button>
 
-<button disabled>
-▶ Resume Scheduler
-</button>
+    </form>
+
+    <form
+        action="/scheduler/pause"
+        method="post"
+    >
+
+        <button type="submit">
+            ⏸ Pause Scheduler
+        </button>
+
+    </form>
+
+    <form
+        action="/scheduler/resume"
+        method="post"
+    >
+
+        <button type="submit">
+            ▶ Resume Scheduler
+        </button>
+
+    </form>
 
 </div>
 

@@ -11,23 +11,87 @@ Dashboard
 <div class="cards">
 
     <div class="card">
+
         <h3>Pipeline</h3>
-        <p>🟢 Running</p>
+
+        {% if dashboard.pipeline_running %}
+
+            <p>🔄 Running</p>
+
+        {% else %}
+
+            <p>✅ Idle</p>
+
+        {% endif %}
+
     </div>
 
     <div class="card">
+
         <h3>Scheduler</h3>
-        <p>🟢 Enabled</p>
+
+        {% if dashboard.scheduler_paused %}
+
+            <p>⏸ Paused</p>
+
+        {% elif dashboard.scheduler_running %}
+
+            <p>🟢 Running</p>
+
+        {% else %}
+
+            <p>🔴 Stopped</p>
+
+        {% endif %}
+
     </div>
 
     <div class="card">
+
         <h3>Email Accounts</h3>
-        <p>3</p>
+
+        <p>{{ dashboard.email_accounts }}</p>
+
     </div>
 
     <div class="card">
+
         <h3>AI Provider</h3>
-        <p>Groq</p>
+
+        <p>{{ dashboard.primary_provider }}</p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Processed Emails</h3>
+
+        <p>{{ dashboard.processed_emails }}</p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Timezone</h3>
+
+        <p>{{ dashboard.timezone }}</p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Max Emails / Run</h3>
+
+        <p>{{ dashboard.max_emails }}</p>
+
+    </div>
+
+    <div class="card">
+
+        <h3>Retention Days</h3>
+
+        <p>{{ dashboard.retention_days }}</p>
+
     </div>
 
 </div>

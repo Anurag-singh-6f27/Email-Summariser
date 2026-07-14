@@ -1,22 +1,37 @@
 """
 Application entry point.
 
-Starts the scheduler and keeps the application
-running until shutdown.
+Starts both the scheduler and the FastAPI admin panel.
 """
 
 from __future__ import annotations
 
 import sys
+import threading
 
+import uvicorn
+
+from admin import state
+from admin.app import get_app
 from config import load_config
-
 from scheduler import Scheduler
-
 from utils.logger import (
     get_logger,
     setup_logger,
 )
+
+
+def start_admin_server() -> None:
+    """
+    Start the FastAPI admin server.
+    """
+
+    uvicorn.run(
+        get_app(),
+        host="0.0.0.0",
+        port=8000,
+        log_level="info",
+    )
 
 
 def main() -> None:
@@ -50,6 +65,15 @@ def main() -> None:
         scheduler = Scheduler(
             config
         )
+
+        state.scheduler = scheduler
+
+        admin_thread = threading.Thread(
+            target=start_admin_server,
+            daemon=True,
+        )
+
+        admin_thread.start()
 
         scheduler.start()
 
