@@ -14,9 +14,8 @@ from admin.schemas import StatusResponse
 from fastapi import HTTPException
 
 from admin import state
-from fastapi import HTTPException
 
-from admin.auth import authenticate
+
 from admin.log_service import get_log_page
 
 from fastapi import Request
@@ -26,22 +25,47 @@ from fastapi.responses import RedirectResponse
 from fastapi.responses import HTMLResponse
 from database.connection import DatabaseManager
 from database.repository import ProcessedEmailRepository
+
+from fastapi import Form
+from admin.auth import (
+    authenticate,
+    login,
+    logout,
+    is_authenticated,
+    require_login,
+)
 router = APIRouter()
 
 config = load_config()
 
 database = DatabaseManager()
 repository = ProcessedEmailRepository(database)
-@router.get("/")
-def home() -> dict[str, str]:
 
-    return {
-        "message": "Personal AI Email Summarizer Admin Panel"
-    }
+
+@router.get("/")
+def home(
+    request: Request,
+):
+
+    response = require_login(request)
+
+    if response:
+        return response
+
+    return RedirectResponse(
+        "/dashboard",
+        status_code=303,
+    )
 
 
 @router.get("/health")
-def health() -> dict[str, str]:
+def health(
+     request: Request,
+) -> dict[str, str]:
+    
+    response = require_login(request)
+    if response:
+        return response
 
     return {
         "status": "healthy",
@@ -50,10 +74,15 @@ def health() -> dict[str, str]:
     }
 
 @router.post("/pipeline/run")
-def run_pipeline() -> dict[str, str]:
+def run_pipeline(
+     request: Request,
+) -> dict[str, str]:
     """
     Execute the pipeline immediately.
     """
+    response = require_login(request)
+    if response:
+        return response
 
     if state.scheduler is None:
 
@@ -72,8 +101,11 @@ def run_pipeline() -> dict[str, str]:
       "/status",
     response_model=StatusResponse,
     )
-def status() -> StatusResponse:
-
+def status( request: Request,) -> StatusResponse:
+  
+  response = require_login(request)
+  if response:
+        return response
   return StatusResponse(
       application="Personal AI Email Summarizer",
       status="Running",
@@ -84,7 +116,6 @@ def status() -> StatusResponse:
       scheduler_enabled=config.scheduler.enabled,
       timezone=config.scheduler.timezone,
   )
-
 @router.get(
     "/dashboard",
     response_class=HTMLResponse,
@@ -92,6 +123,14 @@ def status() -> StatusResponse:
 def dashboard(
     request: Request,
 ):
+
+    response = require_login(
+        request,
+    )
+
+    if response:
+
+        return response
 
     dashboard = {
 
@@ -146,14 +185,34 @@ def dashboard(
         },
     )
 
-@router.post("/login")
-def login(
-    username: str,
-    password: str,
+@router.get(
+    "/login",
+    response_class=HTMLResponse,
+)
+def login_page(
+    request: Request,
 ):
-    """
-    Authenticate the administrator.
-    """
+
+    if is_authenticated(request):
+
+        return RedirectResponse(
+            "/dashboard",
+            status_code=303,
+        )
+
+    return request.app.state.templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={},
+    )
+
+
+@router.post("/login")
+def login_route(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+):
 
     if not authenticate(
         username,
@@ -165,9 +224,24 @@ def login(
             detail="Invalid username or password.",
         )
 
-    return {
-        "message": "Login successful."
-    }
+    login(request)
+
+    return RedirectResponse(
+        "/dashboard",
+        status_code=303,
+    )
+
+@router.get("/logout")
+def logout_route(
+    request: Request,
+):
+
+    logout(request)
+
+    return RedirectResponse(
+        "/login",
+        status_code=303,
+    )
 
 @router.get(
     "/statistics",
@@ -176,6 +250,9 @@ def login(
 def statistics(
     request: Request,
 ):
+    response = require_login(request)
+    if response:
+        return response
 
     stats = {
         "configured_accounts": len(config.email_accounts),
@@ -203,7 +280,11 @@ def emails(
     request: Request,
     page: int = 1,
 ):
-
+    
+    response = require_login(request)
+    if response:
+        return response
+    
     PAGE_SIZE = 20
 
     emails = repository.get_processed_page(
@@ -237,7 +318,9 @@ def emails(
 def scheduler(
     request: Request,
 ):
-
+    response = require_login(request)
+    if response:
+        return response
     scheduler = {
 
         "enabled": (
@@ -283,7 +366,9 @@ def scheduler(
 def providers(
     request: Request,
 ):
-
+    response = require_login(request)
+    if response:
+        return response
     providers = [
         {
             "name": "Groq",
@@ -321,7 +406,9 @@ def providers(
 def configuration(
     request: Request,
 ):
-
+    response = require_login(request)
+    if response:
+        return response
     return request.app.state.templates.TemplateResponse(
         request=request,
         name="configuration.html",
@@ -338,7 +425,10 @@ def logs(
     request: Request,
     page: int = 1,
 ):
-
+    response = require_login(request)
+    if response:
+        return response
+    
     PAGE_SIZE = 100
 
     logs, total_logs = get_log_page(
@@ -362,8 +452,13 @@ def logs(
     )
 
 @router.post("/scheduler/run")
-def run_pipeline():
+def run_pipeline_scheduler(
+    request: Request,
+):
+    response = require_login(request)
 
+    if response:
+        return response
     if state.scheduler is None:
 
         return RedirectResponse(
@@ -379,8 +474,11 @@ def run_pipeline():
     )
 
 @router.post("/scheduler/pause")
-def pause_scheduler():
+def pause_scheduler(request: Request,):
+    response = require_login(request)
 
+    if response:
+        return response
     if state.scheduler is not None:
 
         state.scheduler.pause()
@@ -392,8 +490,11 @@ def pause_scheduler():
 
 
 @router.post("/scheduler/resume")
-def resume_scheduler():
+def resume_scheduler(request: Request,):
+    response = require_login(request)
 
+    if response:
+        return response
     if state.scheduler is not None:
 
         state.scheduler.resume()

@@ -27,6 +27,7 @@ class AdminConfig:
 
     username: str
     password: str
+    secret_key: str
 
 @dataclass(frozen=True)
 class EmailConfig:
@@ -318,6 +319,9 @@ def load_config() -> AppConfig:
 
         password=get_required_env(
             "ADMIN_PASSWORD"
+        ),
+        secret_key=get_required_env(
+            "ADMIN_SECRET_KEY"
         ),
     )
 
