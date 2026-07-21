@@ -137,7 +137,7 @@ class GroqProvider(BaseAIProvider):
                 temperature=0.2,
 
                 extra_body={
-                    "reasoning_effort": "none",
+                    "reasoning_effort": "low",
                 },
             )
 
